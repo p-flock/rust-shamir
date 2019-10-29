@@ -15,7 +15,7 @@ pub struct Share {
 #[derive(Debug)]
 struct Polynomial {
     degree: i64,
-    coefficients: Vec<i64>, // coefficients[0] is the y_intercept (b in, y=mx+b) as it is the coefficient for the 0th term
+    coefficients: Vec<i64>, // coefficients[0] is the y_intercept (b in, y=mx+b) as it is the coefficient for the 0th term }
 }
 
 impl Polynomial {
@@ -105,7 +105,8 @@ fn test_share_and_reconstruct() {
     assert_eq!(a, recons);
 }
 
-/// Adds two vectors of shares, representing polynomials
+/// Adds two vectors of shares
+/// representing addition of two secret-shared values
 pub fn add_shares(a: &Vec<Share>, b: &Vec<Share>) -> Vec<Share> {
     assert_eq!(a.len(), b.len(), "Can only add shares with equal number of points, otherwise may be unable to reconstruct");
 
@@ -114,15 +115,41 @@ pub fn add_shares(a: &Vec<Share>, b: &Vec<Share>) -> Vec<Share> {
 #[test]
 fn test_add_shares() {
     let mut rng = thread_rng();
-    let a: i64 = rng.gen_range(0, P);
-    let b: i64 = rng.gen_range(0, P);
-    let s1 = create_shares(a, 5, 5);
-    let s2 = create_shares(b, 5, 5);
+    for _ in 0..20 {
+        let a: i64 = rng.gen_range(0, P);
+        let b: i64 = rng.gen_range(0, P);
+        let s1 = create_shares(a, 5, 5);
+        let s2 = create_shares(b, 5, 5);
 
-    let result = utilities::modulo(a + b, P);
-    let c = add_shares(&s1, &s2);
-    let recons = reconstruct(&c);
-    assert_eq!(result, recons);
+        let result = utilities::modulo(a + b, P);
+        let c = add_shares(&s1, &s2);
+        let recons = reconstruct(&c);
+        println!("Reconstructed value {} from shares of {} and {} + {}", recons, a, b, result);
+        assert_eq!(result, recons);
+    }
+}
+/// Subtracts one vector of shares from another
+/// representing subtraction of two secret-shared values
+pub fn sub_shares(a: &Vec<Share>, b: &Vec<Share>) -> Vec<Share> {
+    assert_eq!(a.len(), b.len(), "Can only add shares with equal number of points, otherwise may be unable to reconstruct");
+
+    a.iter().zip(b.iter()).map(|tup| tup.0.sub(tup.1)).collect::<Vec<Share>>()
+}
+#[test]
+fn test_sub_shares() {
+    let mut rng = thread_rng();
+    for _ in 0..20 {
+        let a: i64 = rng.gen_range(0, P);
+        let b: i64 = rng.gen_range(0, P);
+        let s1 = create_shares(a, 5, 5);
+        let s2 = create_shares(b, 5, 5);
+
+        let result = utilities::modulo(a - b, P);
+        let c = sub_shares(&s1, &s2);
+        let recons = reconstruct(&c);
+        println!("Reconstructed value {} from shares of {} - {} = {}", recons, a, b, result);
+        assert_eq!(result, recons);
+    }
 }
 
 
@@ -133,7 +160,18 @@ impl Share {
 
         Share {
             x: self.x,
-            y: self.y + o.y,
+            y: utilities::modulo(self.y + o.y, P),
+            threshold: self.threshold,
+            id: String::from("")
+        }
+    }
+    pub fn sub(&self, o: &Share) -> Share {
+        assert!(self.threshold == o.threshold, "Shares do not have the same threshold");
+        assert!(self.x == o.x, "Cannot subtract two shares with different x-coordinates");
+
+        Share {
+            x: self.x,
+            y: utilities::modulo(self.y - o.y, P),
             threshold: self.threshold,
             id: String::from("")
         }
