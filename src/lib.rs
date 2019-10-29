@@ -168,7 +168,6 @@ impl Share {
     pub fn sub(&self, o: &Share) -> Share {
         assert!(self.threshold == o.threshold, "Shares do not have the same threshold");
         assert!(self.x == o.x, "Cannot subtract two shares with different x-coordinates");
-
         Share {
             x: self.x,
             y: utilities::modulo(self.y - o.y, P),
