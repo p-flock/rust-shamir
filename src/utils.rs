@@ -1,12 +1,16 @@
 #![allow(non_snake_case)]
 pub mod utilities {
 
-    pub fn modulo(a: i64, b: i64) -> i64 {
+    pub fn modulo(mut a: i64, b: i64) -> i64 {
+        while a < -b {
+            a += b;
+        }
         ((a % b) + b) % b
     }
     #[test]
     fn test_modulo() {
         assert_eq!(modulo(3, 2), 1);
+        assert_eq!(modulo(-4, 3), 2);
         assert_eq!(modulo(-1, 65413), 65412);
     }
 
