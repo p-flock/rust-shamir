@@ -54,7 +54,11 @@ impl Polynomial {
 }
 #[test]
 fn test_polynomial_impl() {
-    assert_eq!(0, 0);
+    let p = Polynomial::new(vec![0, 0, 1]);
+    let y = p.eval_at_point(1);
+    let y2 = p.eval_at_point(2);
+    assert_eq!(y, 1);
+    assert_eq!(y2, 4);
 }
 
 /// Split a secret into n shares via shamir
@@ -94,7 +98,6 @@ fn test_share_and_reconstruct() {
 
     secret = 60;
     shares = create_shares(secret, 8, 4);
-    println!("{:?}", shares);
     recons = reconstruct(&shares);
     assert_eq!(secret, recons);
 
@@ -124,7 +127,6 @@ fn test_add_shares() {
         let result = utilities::modulo(a + b, P);
         let c = add_shares(&s1, &s2);
         let recons = reconstruct(&c);
-        println!("Reconstructed value {} from shares of {} and {} + {}", recons, a, b, result);
         assert_eq!(result, recons);
     }
 }
@@ -147,7 +149,6 @@ fn test_sub_shares() {
         let result = utilities::modulo(a - b, P);
         let c = sub_shares(&s1, &s2);
         let recons = reconstruct(&c);
-        println!("Reconstructed value {} from shares of {} - {} = {}", recons, a, b, result);
         assert_eq!(result, recons);
     }
 }
